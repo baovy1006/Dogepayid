@@ -1,0 +1,24 @@
+# Dependencies
+node_modules
+
+# Lockfiles
+bun.lock
+
+# Vite
+.vite
+
+# Build output
+dist
+
+# Cache
+cache
+
+# EVM / Hardhat artifacts
+solidity_workspace/node_modules
+solidity_workspace/typechain-types
+solidity_workspace/artifacts/@openzeppelin
+solidity_workspace/artifacts/build-info
+
+# OS files
+.DS_Store
+
