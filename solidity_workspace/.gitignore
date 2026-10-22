@@ -1,0 +1,16 @@
+# Dependencies
+node_modules
+
+# Lockfiles
+bun.lock
+
+# Cache
+cache
+
+# EVM / Hardhat artifacts
+typechain-types
+artifacts/@openzeppelin
+artifacts/build-info
+
+# OS files
+.DS_Store

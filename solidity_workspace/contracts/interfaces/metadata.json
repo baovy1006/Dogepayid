@@ -1,0 +1,34 @@
+{
+  "IdentityRegistry": {
+    "address": "0x007583D5B15A9B8ac928FD64460aD97866c5c947",
+    "contract_address": "0x007583D5B15A9B8ac928FD64460aD97866c5c947",
+    "network": "Doge-testnet",
+    "chainId": 6281971,
+    "rpc": "https://rpc.testnet.dogeos.com/",
+    "transaction_hash": "0x58abe9d753c167c2c65bec3448f387b9746c5b867417f30afa7e63d12a9660dc",
+    "constructor_args": [],
+    "abi": [
+      { "inputs": [], "name": "AlreadyRegistered", "type": "error" },
+      { "inputs": [], "name": "InvalidName", "type": "error" },
+      { "inputs": [], "name": "NameTaken", "type": "error" },
+      {
+        "anonymous": false,
+        "inputs": [
+          { "indexed": true, "internalType": "address", "name": "owner", "type": "address" },
+          { "indexed": true, "internalType": "bytes32", "name": "nameHash", "type": "bytes32" },
+          { "indexed": false, "internalType": "string", "name": "name", "type": "string" }
+        ],
+        "name": "NameRegistered",
+        "type": "event"
+      },
+      { "inputs": [], "name": "MAX_LENGTH", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+      { "inputs": [], "name": "MIN_LENGTH", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+      { "inputs": [{ "internalType": "string", "name": "name", "type": "string" }], "name": "isAvailable", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "view", "type": "function" },
+      { "inputs": [{ "internalType": "string", "name": "name", "type": "string" }], "name": "isValidName", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "pure", "type": "function" },
+      { "inputs": [{ "internalType": "address", "name": "owner", "type": "address" }], "name": "nameOf", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "stateMutability": "view", "type": "function" },
+      { "inputs": [{ "internalType": "string", "name": "name", "type": "string" }], "name": "register", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+      { "inputs": [{ "internalType": "string", "name": "name", "type": "string" }], "name": "resolve", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+      { "inputs": [], "name": "totalRegistered", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }
+    ]
+  }
+}

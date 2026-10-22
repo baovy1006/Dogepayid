@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { copyToClipboard } from '@/lib/clipboard';
 import { TARGET_CHAIN } from '@/lib/config';
+import { formatDogeId } from '@/lib/dogeId';
+import { useDogeIdOf } from '@/hooks/useDogeId';
 
 interface ReceiveDialogProps {
     open: boolean;
@@ -14,6 +16,7 @@ interface ReceiveDialogProps {
 /** Public address + QR code for receiving DOGE on DogeOS Testnet. */
 export const ReceiveDialog = ({ open, onOpenChange }: ReceiveDialogProps) => {
     const { address } = useAccount();
+    const { data: dogeId } = useDogeIdOf(address);
     if (!address) return null;
 
     return (
@@ -27,6 +30,13 @@ export const ReceiveDialog = ({ open, onOpenChange }: ReceiveDialogProps) => {
                 <div className="mx-auto rounded-lg bg-foreground p-4 text-background">
                     <QRCodeSVG value={address} size={196} fgColor="currentColor" bgColor="transparent" level="M" aria-label="QR code of your wallet address" />
                 </div>
+
+                {dogeId && (
+                    <button onClick={() => copyToClipboard(formatDogeId(dogeId), 'Doge ID copied')} className="interactive rounded-lg border border-success/25 bg-success/5 p-3 text-left hover:border-success/50">
+                        <p className="eyebrow">Your verified Doge ID</p>
+                        <p className="mt-1 font-display text-2xl">{formatDogeId(dogeId)}</p>
+                    </button>
+                )}
 
                 <div className="rounded-lg border border-border bg-background/60 p-3">
                     <p className="eyebrow">Your wallet address</p>

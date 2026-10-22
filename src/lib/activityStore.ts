@@ -3,7 +3,7 @@
  * Every record is keyed by a real transaction hash; its status is only ever set
  * from an on-chain receipt. Nothing here is fabricated or used to compute balances.
  */
-export type ActivityKind = 'send' | 'register_id' | 'savings_deposit' | 'savings_withdraw' | 'savings_create';
+export type ActivityKind = 'send' | 'register_id' | 'savings_deposit' | 'savings_withdraw' | 'savings_create' | 'savings_close';
 export type ActivityStatus = 'pending' | 'confirmed' | 'failed';
 
 export interface ActivityRecord {
@@ -13,6 +13,10 @@ export interface ActivityRecord {
     chainId: number;
     amountWei?: string;
     counterparty?: { address: string; dogeId?: string };
+    /** Savings goal id for savings_* records. */
+    goalId?: string;
+    /** Short human label, e.g. the goal or Doge ID name. */
+    label?: string;
     /** Block timestamp (ms) once confirmed; submit time while pending. */
     timestamp: number;
 }

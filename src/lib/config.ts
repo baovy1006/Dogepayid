@@ -50,12 +50,22 @@ const envAddress = (value: unknown): Address | undefined =>
     typeof value === 'string' && isAddress(value) ? (value as Address) : undefined;
 
 /**
- * Deployed contract addresses. Undefined until a real deployment exists —
- * features that depend on them show a "not deployed yet" state instead of faking data.
+ * Real deployments on DogeOS Chikyū Testnet (from solidity_workspace/contracts/interfaces/metadata.json).
+ * IdentityRegistry deploy tx: 0x58abe9d753c167c2c65bec3448f387b9746c5b867417f30afa7e63d12a9660dc
+ * SavingsVault: not deployed yet — set VITE_SAVINGS_VAULT_ADDRESS once it is.
+ */
+const DEPLOYED: { identityRegistry?: Address; savingsVault?: Address } = {
+    identityRegistry: '0x007583D5B15A9B8ac928FD64460aD97866c5c947',
+    savingsVault: undefined,
+};
+
+/**
+ * Deployed contract addresses. Env vars override the recorded deployments. Undefined
+ * means not deployed — dependent features show a "not deployed yet" state instead of faking data.
  */
 export const CONTRACTS = {
-    identityRegistry: envAddress(import.meta.env.VITE_IDENTITY_REGISTRY_ADDRESS),
-    savingsVault: envAddress(import.meta.env.VITE_SAVINGS_VAULT_ADDRESS),
+    identityRegistry: envAddress(import.meta.env.VITE_IDENTITY_REGISTRY_ADDRESS) ?? DEPLOYED.identityRegistry,
+    savingsVault: envAddress(import.meta.env.VITE_SAVINGS_VAULT_ADDRESS) ?? DEPLOYED.savingsVault,
 };
 
 export type NetworkConfig = typeof TESTNET_CONFIG;
