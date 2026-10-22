@@ -35,7 +35,7 @@ const wallets = envProjectId
  * TS services (via `wagmi/actions`, e.g. `readContract(wagmiConfig, ...)`).
  */
 export const wagmiConfig = getDefaultConfig({
-    appName: 'dApp', // shown in WalletConnect / wallet prompts — set to the app's name
+    appName: 'DogePay ID',
     projectId,
     chains: [TARGET_CHAIN],
     transports: { [TARGET_CHAIN.id]: http(TESTNET_CONFIG.rpcUrl) },

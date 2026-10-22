@@ -1,20 +1,25 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
+import { AppShell } from '@/components/layout/AppShell';
+import Activity from './pages/Activity';
+import Contacts from './pages/Contacts';
+import Home from './pages/Home';
 import NotFound from './pages/NotFound';
-import Index from './pages/Index';
+import Settings from './pages/Settings';
 
-const App = () => {
-    return (
-        <>
-            <Routes>
-                <Route path="/" element={<Index />} />
+const App = () => (
+    <>
+        <Routes>
+            <Route element={<AppShell />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/contacts" element={<Contacts />} />
+                <Route path="/activity" element={<Activity />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-        </>
-    );
-};
+            </Route>
+        </Routes>
+        <Toaster />
+    </>
+);
 
 export default App;
-

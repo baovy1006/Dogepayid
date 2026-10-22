@@ -1,13 +1,20 @@
 import '@rainbow-me/rainbowkit/styles.css';
 import { useEffect, useRef, type ReactNode } from 'react';
-import { RainbowKitProvider, lightTheme } from '@rainbow-me/rainbowkit';
+import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider, useAccount } from 'wagmi';
 import { toast } from '@/hooks/use-toast';
-import { TARGET_CHAIN } from '@/lib/config';
+import { BRAND_COLORS, TARGET_CHAIN } from '@/lib/config';
 import { ensureTargetChain, isUserRejection, wagmiConfig } from '@/lib/wagmi';
 
 const queryClient = new QueryClient();
+
+const walletTheme = darkTheme({
+    accentColor: BRAND_COLORS.gold,
+    accentColorForeground: BRAND_COLORS.obsidian,
+    borderRadius: 'large',
+    overlayBlur: 'small',
+});
 
 /**
  * Keeps the connected wallet on TARGET_CHAIN. Whenever a wallet is connected on
@@ -45,7 +52,7 @@ const ChainGuard = () => {
 export const Web3Provider = ({ children }: { children: ReactNode }) => (
     <WagmiProvider config={wagmiConfig}>
         <QueryClientProvider client={queryClient}>
-            <RainbowKitProvider initialChain={TARGET_CHAIN} modalSize="compact" theme={lightTheme({ accentColor: '#18181b' })}>
+            <RainbowKitProvider initialChain={TARGET_CHAIN} modalSize="compact" theme={walletTheme}>
                 <ChainGuard />
                 {children}
             </RainbowKitProvider>
