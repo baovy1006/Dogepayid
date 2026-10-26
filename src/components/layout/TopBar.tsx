@@ -1,8 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { Droplets, ExternalLink } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
-import { WalletButton } from '@/components/wallet/WalletButton';
-import { DogecoinL1Button } from '@/components/wallet/DogecoinL1Button';
+import { UnifiedWalletButton } from '@/components/wallet/UnifiedWalletButton';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { NAV_ITEMS } from '@/lib/nav';
 import { cn } from '@/lib/utils';
@@ -24,8 +23,7 @@ export const TopBar = () => (
           <Droplets className="h-3.5 w-3.5" aria-hidden /><span>Faucet</span><ExternalLink className="hidden h-3 w-3 sm:block" aria-hidden />
         </a>
         <NotificationBell />
-        <DogecoinL1Button />
-        <WalletButton />
+        <UnifiedWalletButton />
       </div>
     </div>
   </header>

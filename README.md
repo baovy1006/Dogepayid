@@ -8,7 +8,7 @@ DogePay ID is a testnet-only, non-custodial social payments dApp for [DogeOS Chi
 ## Features
 | Feature | Trust boundary |
 | --- | --- |
-| Wallet connect and chain switch | EVM wallet; chain ID `6281971` |
+| Unified wallet connect | One 3-step experience: wallet, X account, server-verified wallet signature; Google can optionally join the same X identity |
 | Register/resolve Doge ID | On-chain IdentityRegistry |
 | Send, Receive, Request DOGE | Native DOGE transfer signed by user's wallet |
 | Savings Goals | On-chain SavingsVault. No APY or lockup |
@@ -78,3 +78,7 @@ For rollout procedures and limitations see [DEPLOYMENT](./DEPLOYMENT.md), [SECUR
 
 ## License
 No top-level software license has been chosen by the project owner. Do not assume an open-source license from the repository's public visibility or individual contract SPDX headers.
+
+## Unified DogePay Account
+
+Wallet + X + optional Google onboarding: [3-in-1 identity architecture and setup](./docs/IDENTITY_3IN1.md). OAuth providers and the verification backend must be configured before claiming account linking works.
