@@ -1,7 +1,32 @@
-# DogePay Circle — planned, not deployed
+# DogePay Circle — Social Treasury
 
-The intended Social DeFi group treasury allows **5, 10 or 15 members**, group chat, shared DOGE goals, Split Bill and an isolated CircleVault per group.
+## Vision
 
-Design principles: the organizer is an administrator, **not an unrestricted owner of treasury DOGE**. Funds belong to a contract; spending needs defined member approval (2/3 small, 4/5 large), daily limits, and additional delay only for high-risk governance or large withdrawals. Preapproved quick-spend allowances reduce checkout delays but create bounded exposure. Cancel/refund distributes the remaining DOGE pro rata, not the original spent amount.
+DogePay Circle extends DogePay ID from personal payments into collaborative Social DeFi.
 
-**Status:** no published, audited or deployed CircleVault product. Prototype requires tests for malicious admin, vote manipulation, collusion, reentrancy, replay, refund fairness, loss of signers, caps, locks and group deadlock. Never enable Create Circle with real funds based on this design alone.
+## Planned Experience
+
+- Create private groups with 5, 10 or 15 members.
+- Manage shared DOGE savings and spending goals.
+- Chat and coordinate payments within a Circle.
+- Split bills and track member contributions.
+- Review spending proposals and approve withdrawals.
+- View transparent group activity and balances.
+
+## Treasury Design
+
+Each Circle is designed to use an isolated smart-contract treasury.
+
+The organizer manages group coordination without unrestricted access to shared funds.
+
+Group spending will follow defined approval thresholds, spending limits, and transparent on-chain records.
+
+## Development Roadmap
+
+1. Circle UI and group management.
+2. CircleVault contract implementation.
+3. Shared savings, Split Bill and voting.
+4. Testnet integration and security testing.
+5. Production readiness and gradual rollout.
+
+Circle is a future DogePay ID product module. Its features will be introduced progressively following implementation and verification.

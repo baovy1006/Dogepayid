@@ -8,6 +8,6 @@ For Supabase, create Postgres, apply `supabase/migrations/20261025_dogepay_socia
 
 The historical Vercel production used build-time code patches held outside GitHub. Once equivalent source files are committed and a preview build passes with `npm run build`, change project build/install settings to the direct commands above. Preserve old READY deployment until a new build and smoke test pass.
 
-Do not deploy CircleVault to mainnet; Circle is an unreviewed design. Do not restore/migrate historical Vercel Blob records without access authorization and verification. The old store remains suspended, and the new database has different records.
+Circle is a roadmap module. Activation with real assets requires implementation, security review and acceptance testing. Do not restore/migrate historical Vercel Blob records without access authorization and verification. The old store remains suspended, and the new database has different records.
 
 Rollback should promote a known working deployment through Vercel, without deleting Supabase data or savings contract references.

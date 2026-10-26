@@ -14,8 +14,19 @@ DogePay ID is a testnet-only, non-custodial social payments dApp for [DogeOS Chi
 | Savings Goals | On-chain SavingsVault. No APY or lockup |
 | Activity | Real on-chain receipts and local submitted-transaction journal |
 | Friends, Chat, notifications, read state | Supabase Postgres through signed-wallet API |
-| Swap | **Disabled**: no verified native liquidity/router |
-| Circle group treasury | Prototype/design **only**, not deployed or audited |
+
+## Future Roadmap
+
+**In-app Swap**
+Swap DOGE and supported ecosystem tokens directly within DogePay ID, with clear quotes, slippage controls and wallet authorization.
+
+**DogePay Circle — Social Treasury**
+Create social finance groups with shared DOGE goals, group chat, Split Bill, contribution tracking and transparent member-approved spending.
+
+**Mainnet Expansion**
+Advance wallet UX, payment infrastructure, security reviews, automated tests and production readiness.
+
+*These are planned product capabilities, separate from the current testnet features.*
 
 ## Important caveats
 - This is **TESTNET ONLY**; no real asset value and no independent contract audit.
