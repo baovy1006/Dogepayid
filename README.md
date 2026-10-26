@@ -15,6 +15,12 @@ DogePay ID is a testnet-only, non-custodial social payments dApp for [DogeOS Chi
 | Activity | Real on-chain receipts and local submitted-transaction journal |
 | Friends, Chat, notifications, read state | Supabase Postgres through signed-wallet API |
 
+## Dogecoin Layer 1 Wallet
+
+Dogecoin L1 wallet connection is available through supported browser wallets, initially **MyDoge** and **Doge Soft**. Users can connect, see their L1 address and available wallet-reported balance, copy their address, and disconnect. This integration is intentionally read-only: no mainnet transfers or bridges are initiated.
+
+**Network separation:** Dogecoin L1 mainnet balances are not DogeOS Chikyū testnet balances; Doge ID, Pay, Savings and Friends remain on DogeOS. Cross-network asset transfers require separately implemented and verified bridging.
+
 ## Future Roadmap
 
 **In-app Swap**
