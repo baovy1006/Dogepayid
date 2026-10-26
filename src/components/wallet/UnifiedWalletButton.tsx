@@ -27,7 +27,7 @@ const walletOptions: { kind: DogecoinWalletKind; name: string; url: string }[] =
 /** One entry point for wallet, social OAuth, and server-verified signature ownership. */
 export const UnifiedWalletButton = () => {
   const { address: evmAddress, isConnected: evmConnected } = useAccount();
-  const { disconnect: disconnectEvm } = useDisconnect();
+  const { disconnectAsync: disconnectEvmAsync } = useDisconnect();
   const [open, setOpen] = useState(false);
   const [stage, setStage] = useState<Stage>('wallet');
   const [l1, setL1] = useState<DogecoinL1Session | null>(null);
@@ -92,6 +92,7 @@ export const UnifiedWalletButton = () => {
   const matched = selected && verified.some(item =>
     item.walletKind === selected.kind && item.walletAddress.toLowerCase() === selected.address.toLowerCase());
   const connectedWalletCount = Number(!!l1) + Number(evmConnected);
+  const hasActiveSession = connectedWalletCount > 0 || !!social.userId;
   const stepIndex = stage === 'wallet' ? 0 : stage === 'social' ? 1 : 2;
 
   const start = () => {
@@ -121,17 +122,46 @@ export const UnifiedWalletButton = () => {
     finally { setLoading(false); }
   };
 
+  /** Disconnect every active session on this device, without deleting verified links. */
   const disconnect = async () => {
-    if (!selected) return;
+    if (loading || !hasActiveSession) return;
     setLoading(true); setError('');
-    try {
-      if (selected.kind === 'dogeos') disconnectEvm();
-      else await disconnectDogecoinWallet(selected.kind);
-      if (selected.kind !== 'dogeos') setL1(null);
-      setSelected(null); setStage('wallet');
-      // A previously verified backend identity persists; disconnect only closes the wallet session.
-    } catch (e) { setError(e instanceof Error ? e.message : 'Could not disconnect wallet.'); }
-    finally { setLoading(false); }
+    const errors: string[] = [];
+    if (l1) {
+      try {
+        await disconnectDogecoinWallet(l1.kind);
+        setL1(null);
+      } catch { errors.push('Dogecoin wallet'); }
+    }
+    if (evmConnected) {
+      try { await disconnectEvmAsync(); }
+      catch { errors.push('DogeOS wallet'); }
+    }
+    if (authConfigured && social.userId) {
+      try {
+        // Local scope: do not log out other browsers or phones.
+        const { error: signOutError } = await identityClient().auth.signOut({ scope: 'local' });
+        if (signOutError) throw signOutError;
+        setSocial(EMPTY_SOCIAL);
+        setVerified([]);
+      } catch { errors.push('X / Google session'); }
+    }
+    if (errors.length) {
+      setError(`Could not disconnect: ${errors.join(', ')}. Please retry.`);
+    } else {
+      // Friends & Chat use a separate wallet-signed session on this browser.
+      try {
+        for (let i = sessionStorage.length - 1; i >= 0; i--) {
+          const key = sessionStorage.key(i);
+          if (key?.startsWith('dogepay:social:')) sessionStorage.removeItem(key);
+        }
+      } catch { /* Storage may be disabled; connected accounts still disconnect. */ }
+      setSelected(null);
+      setStage('wallet');
+      setOpen(false);
+      window.dispatchEvent(new Event('dogepay:account-disconnected'));
+    }
+    setLoading(false);
   };
 
   const runOAuth = async (provider: 'x' | 'google') => {
@@ -155,12 +185,20 @@ export const UnifiedWalletButton = () => {
   return (
     <ConnectButton.Custom>
       {({ mounted, openConnectModal }) => <>
-        <Button type="button" size="sm" disabled={!mounted} onClick={start}
-          className="h-10 gap-2 rounded-full px-3 font-semibold sm:px-4" aria-label="Connect or manage wallets and social accounts">
-          <Wallet className="h-4 w-4" />
-          <span className="hidden sm:inline">{matched && social.x ? 'DogePay Account' : connectedWalletCount ? 'My Wallet' : 'Connect Wallet'}</span>
-          <span className="sm:hidden">Wallet</span>
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Button type="button" size="sm" disabled={!mounted} onClick={start}
+            className="h-10 gap-2 rounded-full px-2 font-semibold sm:px-4" aria-label="Connect or manage wallets and social accounts">
+            <Wallet className="h-4 w-4" />
+            <span className="hidden sm:inline">{matched && social.x ? 'DogePay Account' : hasActiveSession ? 'My Wallet' : 'Connect Wallet'}</span>
+            <span className="sm:hidden">Wallet</span>
+          </Button>
+          {hasActiveSession && <Button type="button" size="sm" variant="outline" disabled={loading}
+            onClick={() => void disconnect()} aria-label="Disconnect wallets and sign out of X and Google"
+            className="hidden h-9 gap-1 rounded-full border-destructive/40 px-2 text-xs text-destructive hover:bg-destructive/10 sm:inline-flex sm:px-3">
+            {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />}
+            Disconnect
+          </Button>}
+        </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-h-[90vh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-2xl border-border bg-popover p-5 sm:p-6">
             <DialogHeader>
@@ -225,10 +263,15 @@ export const UnifiedWalletButton = () => {
               <p className="text-xs text-muted-foreground">Google: {social.google ? 'Connected' : 'Not connected (optional)'}</p>
               {!social.google && <Button variant="secondary" className="w-full" disabled={loading} onClick={() => void runOAuth('google')}>Add Google to this account</Button>}
               <Button variant="outline" className="w-full" onClick={() => void copyToClipboard(selected?.address || '', 'Wallet address copied')}><Copy className="h-4 w-4" /> Copy wallet address</Button>
-              <Button variant="ghost" className="w-full" onClick={disconnect} disabled={loading}><XCircle className="h-4 w-4" /> Disconnect wallet</Button>
+              <Button variant="outline" className="w-full border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => void disconnect()} disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />} Disconnect
+              </Button>
               <Button variant="ghost" className="w-full" onClick={() => setStage('wallet')}>Connect another wallet</Button>
             </div>}
             {stage !== 'done' && selected?.address && <p className="text-xs text-muted-foreground">Wallet selected: {shortenAddress(selected.address)}</p>}
+            {stage !== 'done' && hasActiveSession && <Button variant="outline" className="w-full border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => void disconnect()} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />} Disconnect
+            </Button>}
             {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <p className="text-xs text-muted-foreground">DogePay never requests seed phrases. X/Google linking requires OAuth approval. Signing a message does not transfer DOGE. Dogecoin L1 mainnet and DogeOS Testnet remain separate.</p>
           </DialogContent>
