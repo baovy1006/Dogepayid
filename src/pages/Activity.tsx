@@ -6,7 +6,7 @@ const Activity = () => (
     <>
         <PageHeader
             title="Activity"
-            description="Transactions you make in DogePay, with their on-chain status. Your complete wallet history is always available on the explorer."
+            description="Incoming and outgoing DOGE transfers, plus local DogePay receipts."
         />
         <ConnectGate reason="Connect to see the transactions you've made with DogePay.">
             <RecentActivity />

@@ -3,7 +3,7 @@
  * Every record is keyed by a real transaction hash; its status is only ever set
  * from an on-chain receipt. Nothing here is fabricated or used to compute balances.
  */
-export type ActivityKind = 'send' | 'register_id' | 'savings_deposit' | 'savings_withdraw' | 'savings_create' | 'savings_close';
+export type ActivityKind = 'receive' | 'send' | 'register_id' | 'savings_deposit' | 'savings_withdraw' | 'savings_create' | 'savings_close';
 export type ActivityStatus = 'pending' | 'confirmed' | 'failed';
 
 export interface ActivityRecord {
@@ -53,7 +53,7 @@ export function subscribeActivity(cb: () => void): () => void {
 /** Removes every DogePay key from this device (activity, contacts, preferences). */
 export function clearLocalData(): void {
     Object.keys(localStorage)
-        .filter((k) => k.startsWith(PREFIX))
+        .filter((k) => k.startsWith(PREFIX) && k !== 'dogepay:savingsVault' && !k.startsWith('dogepay:savings:'))
         .forEach((k) => localStorage.removeItem(k));
     window.dispatchEvent(new Event(EVENT));
 }

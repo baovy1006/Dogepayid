@@ -1,6 +1,6 @@
 /** English UI strings. Add sibling files (e.g. es.ts) with the same shape to localize. */
 export const en = {
-    brand: { name: 'DogePay ID', tagline: 'Send DOGE to people, not addresses.' },
+    brand: { name: 'DogePay ID', tagline: 'Send DOGE to people, not just addresses.' },
     nav: { home: 'Home', contacts: 'Contacts', activity: 'Activity', settings: 'Settings' },
     wallet: {
         connect: 'Connect wallet',

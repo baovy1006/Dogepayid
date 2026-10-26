@@ -33,7 +33,7 @@ export const ReviewStep = ({ name, owner, wei, fee, error, onBack, onConfirm }: 
         </div>
         <p className="flex gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-            Blockchain payments can't be reversed. The Doge ID is re-checked on-chain right before you sign.
+            Blockchain payments can't be reversed. {name ? 'The Doge ID is re-checked on-chain before signing.' : 'This is a direct address transfer. Double-check the full destination address before signing.'}
         </p>
         {error && <p className="text-xs text-destructive" aria-live="polite">{error}</p>}
         <div className="flex gap-3">

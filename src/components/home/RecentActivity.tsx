@@ -4,12 +4,14 @@ import { useAccount } from 'wagmi';
 import { ActivityRow } from '@/components/activity/ActivityRow';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useActivity } from '@/hooks/useActivity';
+import { useChainActivity } from '@/hooks/useChainActivity';
 import { explorerAddressUrl } from '@/lib/config';
 
 /** Transactions submitted through DogePay, each with a real hash and explorer link. */
 export const RecentActivity = ({ limit }: { limit?: number }) => {
     const { address } = useAccount();
-    const records = useActivity(address);
+    const local=useActivity(address),chain=useChainActivity(address);
+    const records=[...new Map([...local,...(chain.data||[])].map(r=>[r.hash+':'+r.kind,r])).values()].sort((a,b)=>b.timestamp-a.timestamp);
     const shown = limit ? records.slice(0, limit) : records;
 
     return (
@@ -25,11 +27,12 @@ export const RecentActivity = ({ limit }: { limit?: number }) => {
                     )}
                 </div>
             </div>
+            {chain.isError&&<p className="mt-2 text-xs text-warning">Explorer unavailable, showing local receipts. <button onClick={()=>chain.refetch()} className="underline">Retry</button></p>}
             {shown.length === 0 ? (
                 <EmptyState
                     icon={Receipt}
                     title="No DogePay transactions yet"
-                    description="Payments and savings you make here will appear with their on-chain receipts."
+                    description="Incoming and outgoing DOGE transfers appear after indexing."
                 />
             ) : (
                 <ul className="mt-2 divide-y divide-border">

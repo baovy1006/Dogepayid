@@ -11,7 +11,7 @@ export const ConnectHero = () => (
             <div>
                 <motion.p variants={fadeUp} className="eyebrow">Social payments on DogeOS</motion.p>
                 <motion.h1 variants={fadeUp} className="mt-4 font-display text-5xl leading-[0.95] tracking-tight sm:text-6xl md:text-7xl">
-                    Send DOGE to <em className="text-primary">people</em>, not addresses.
+                    Send DOGE to <em className="text-primary">people</em>, not just addresses.
                 </motion.h1>
                 <motion.p variants={fadeUp} className="mt-5 max-w-md text-base text-muted-foreground md:text-lg">
                     Claim a name like <span className="font-medium text-foreground">@alex.doge</span>, pay friends by name, and set DOGE aside

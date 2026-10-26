@@ -22,3 +22,12 @@ solidity_workspace/artifacts/build-info
 # OS files
 .DS_Store
 
+
+.env
+.env.*
+!.env.example
+.vercel/
+
+.env
+.env.*
+!.env.example

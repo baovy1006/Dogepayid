@@ -20,10 +20,12 @@ export const ActionRow = () => {
                 <ActionButton icon={ArrowUpRight} label={t.home.send} primary onClick={() => setDialog('send')} soonReason={registryLive ? undefined : REGISTRY_PENDING} />
                 <ActionButton icon={ArrowDownLeft} label={t.home.receive} onClick={() => setDialog('receive')} />
                 <ActionButton icon={HandCoins} label={t.home.request} onClick={() => setDialog('request')} soonReason={registryLive ? undefined : REGISTRY_PENDING} />
+                
             </div>
             <SendDialog open={dialog === 'send'} onOpenChange={setOpen('send')} />
             <ReceiveDialog open={dialog === 'receive'} onOpenChange={setOpen('receive')} />
             <RequestDialog open={dialog === 'request'} onOpenChange={setOpen('request')} />
+            
         </>
     );
 };

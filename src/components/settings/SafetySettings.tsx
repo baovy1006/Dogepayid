@@ -15,7 +15,7 @@ const PRINCIPLES = [
 export const SafetySettings = () => {
     const onClear = () => {
         clearLocalData();
-        toast({ title: 'Local data cleared', description: 'Saved contacts and cached activity were removed from this device.' });
+        toast({ title: 'Local data cleared', description: 'Only removable device caches were cleared. SavingsVault reference is kept.' });
     };
 
     return (

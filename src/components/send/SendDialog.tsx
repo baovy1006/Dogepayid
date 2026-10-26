@@ -12,7 +12,7 @@ import { resolveName } from '@/lib/registryService';
 import { sendDoge } from '@/lib/sendService';
 import { runTrackedTx, type TxState } from '@/lib/txService';
 import { AmountStep } from './AmountStep';
-import { RecipientStep } from './RecipientStep';
+import { RecipientWithFriends } from './RecipientWithFriends';
 import { ReviewStep } from './ReviewStep';
 
 type Step = 'recipient' | 'amount' | 'review' | 'tx';
@@ -46,12 +46,12 @@ export const SendDialog = ({ open, onOpenChange, initialRecipient = '', initialA
         if (!to || !wei) return;
         setReviewError(null);
         // Re-resolve right before signing so a stale lookup can never redirect funds.
-        const fresh = await resolveName(to.name).catch(() => null);
+        const fresh = to.name ? await resolveName(to.name).catch(() => null) : to.owner;
         if (!fresh || fresh.toLowerCase() !== to.owner.toLowerCase()) return setReviewError('This Doge ID no longer resolves to the address shown. Payment stopped.');
         const latest = (await balance.refetch()).data?.value;
         if (latest !== undefined && fee.data !== undefined && wei + fee.data > latest) return setReviewError('Your balance changed and no longer covers this payment plus fee.');
         setStep('tx');
-        const receipt = await runTrackedTx(() => sendDoge(to.owner, wei), { kind: 'send', amountWei: wei.toString(), counterparty: { address: to.owner, dogeId: formatDogeId(to.name) } }, setTx);
+        const receipt = await runTrackedTx(() => sendDoge(to.owner, wei), { kind: 'send', amountWei: wei.toString(), counterparty: { address: to.owner, dogeId: to.name ? formatDogeId(to.name) : undefined } }, setTx);
         if (receipt) balance.refetch();
     };
 
@@ -62,13 +62,13 @@ export const SendDialog = ({ open, onOpenChange, initialRecipient = '', initialA
                     <DialogTitle className="font-display text-3xl font-normal">{step === 'review' ? 'Review payment' : 'Send DOGE'}</DialogTitle>
                     <DialogDescription>{step === 'tx' ? 'Payment status' : 'Pay a person by their Doge ID.'}</DialogDescription>
                 </DialogHeader>
-                {step === 'recipient' && <RecipientStep input={input} onInput={setInput} onNext={(name, owner) => { setTo({ name, owner }); setStep('amount'); }} />}
+                {step === 'recipient' && <RecipientWithFriends input={input} onInput={setInput} onNext={(name, owner) => { setTo({ name, owner }); setStep('amount'); }} />}
                 {step === 'amount' && to && <AmountStep {...to} amount={amount} onAmount={setAmount} fee={fee.data} feeLoading={fee.isLoading} onBack={() => setStep('recipient')} onNext={() => setStep('review')} />}
                 {step === 'review' && to && wei && fee.data !== undefined && <ReviewStep {...to} wei={wei} fee={fee.data} error={reviewError} onBack={() => setStep('amount')} onConfirm={confirm} />}
                 {step === 'tx' && (
                     <>
                         <TxStatusPanel state={tx} />
-                        {tx.phase === 'confirmed' && to && wei && <p className="text-center text-sm">Sent <span className="tabular font-semibold">{formatDoge(wei, 18)} DOGE</span> to {formatDogeId(to.name)}</p>}
+                        {tx.phase === 'confirmed' && to && wei && <p className="text-center text-sm">Sent <span className="tabular font-semibold">{formatDoge(wei, 18)} DOGE</span> to {to.name ? formatDogeId(to.name) : to.owner}</p>}
                         {!busy && (
                             <Button variant="secondary" className="w-full rounded-full" onClick={() => (tx.phase === 'confirmed' || tx.phase === 'pending' ? onOpenChange(false) : setStep('review'))}>
                                 {tx.phase === 'confirmed' ? 'Done' : tx.phase === 'pending' ? 'Close' : 'Back to review'}

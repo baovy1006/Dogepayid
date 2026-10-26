@@ -21,7 +21,7 @@ export const RequestDialog = ({ open, onOpenChange }: { open: boolean; onOpenCha
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-sm rounded-xl border-border bg-popover">
+            <DialogContent className="w-[calc(100vw-2rem)] max-w-md min-w-0 overflow-hidden rounded-xl border-border bg-popover p-5 sm:p-6">
                 <DialogHeader>
                     <DialogTitle className="font-display text-3xl font-normal">Request DOGE</DialogTitle>
                     <DialogDescription>Share a link. The payer reviews and approves the payment in their own wallet.</DialogDescription>
@@ -35,7 +35,7 @@ export const RequestDialog = ({ open, onOpenChange }: { open: boolean; onOpenCha
                 ) : url ? (
                     <RequestLink url={url} name={name} amount={amount} onEdit={() => setUrl(null)} />
                 ) : (
-                    <div className="space-y-4">
+                    <div className="w-full min-w-0 max-w-full space-y-4">
                         <AmountField id="request-amount" value={amount} onChange={setAmount} />
                         {amount && !wei && <p className="text-xs text-destructive">Enter a valid amount greater than zero.</p>}
                         <p className="text-xs text-muted-foreground">A request doesn't move any funds. It's only paid when the payer signs a transfer.</p>
