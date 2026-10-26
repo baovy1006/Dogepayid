@@ -1,5 +1,5 @@
 import {createClient} from 'npm:@supabase/supabase-js@2.75.0';
-import {verifyMessage,isAddress} from 'npm:viem@2.39.0';
+import {verifyMessage,isAddress,createPublicClient,http,parseAbi} from 'npm:viem@2.39.0';
 const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false}});
 const h={'Access-Control-Allow-Origin':'https://dogepay-id-hackathon.vercel.app','Access-Control-Allow-Headers':'authorization,content-type,apikey','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Cache-Control':'no-store'};
 const send=(o:unknown,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{...h,'content-type':'application/json'}});
@@ -11,7 +11,29 @@ const key=(a:string,b:string)=>a<b?[a,b]:[b,a];
 const at=(s:string)=>new Date(s).getTime();
 async function auth(r:Request){const t=r.headers.get('authorization')?.replace(/^Bearer /i,'');if(!t)return '';const {data}=await db.from('dp_sessions').select('wallet').eq('token_hash',await hash(t)).gt('expires_at',new Date().toISOString()).maybeSingle();return data?.wallet||''}
 async function relation(a:string,b:string){const [lo,hi]=key(a,b);const {data,error}=await db.from('dp_friendships').select('status,initiator').eq('wallet_low',lo).eq('wallet_high',hi).maybeSingle();if(error)throw error;return data}
-const row=(a:string)=>({address:a,name:''});
+// Resolve social display names from the canonical DogeOS IdentityRegistry.
+const registry = createPublicClient({transport:http('https://rpc.testnet.dogeos.com/',{timeout:7000})});
+const registryAddress = '0x007583D5B15A9B8ac928FD64460aD97866c5c947' as const;
+const registryAbi = parseAbi([
+ 'function nameOf(address owner) view returns (string)',
+ 'function resolve(string name) view returns (address)',
+]);
+const names = new Map<string,{value:string;expires:number}>();
+async function row(a:string){
+ const cached=names.get(a);
+ if(cached&&cached.expires>Date.now())return {address:a,name:cached.value};
+ let name='';
+ try {
+  const candidate=await registry.readContract({address:registryAddress,abi:registryAbi,functionName:'nameOf',args:[a as `0x${string}`]});
+  if(candidate&&/^[a-z0-9][a-z0-9-]{1,18}[a-z0-9]$/.test(candidate)&&!candidate.includes('--')){
+   const owner=await registry.readContract({address:registryAddress,abi:registryAbi,functionName:'resolve',args:[candidate]});
+   if(owner.toLowerCase()===a.toLowerCase())name=candidate;
+  }
+ }catch{ /* Registry RPC is optional for Friends availability. */ }
+ // Cache confirmed names longer; transient read failures retry soon.
+ names.set(a,{value:name,expires:Date.now()+(name?120000:15000)});
+ return {address:a,name};
+}
 async function notice(to:string,from:string,kind:string,text=''){await db.from('dp_notices').insert({wallet:to,actor:from,kind,body:text})}
 async function handle(r:Request){
  if(r.method==='OPTIONS')return new Response(null,{status:204,headers:h});
@@ -43,7 +65,18 @@ async function handle(r:Request){
   const {data,error}=await db.from('dp_friendships').select('*').or('wallet_low.eq.'+w+',wallet_high.eq.'+w).limit(200);
   if(error)throw error;
   const friends:any[]=[],incoming:any[]=[],sent:any[]=[];
-  for(const f of data||[]){const p=row(f.wallet_low===w?f.wallet_high:f.wallet_low);if(f.status==='accepted')friends.push(p);else if(f.initiator===w)sent.push(p);else incoming.push(p)}
+  const peers=[...new Set((data||[]).map(f=>f.wallet_low===w?f.wallet_high:f.wallet_low))];
+  const profiles=new Map<string,{address:string;name:string}>();
+  for(let i=0;i<peers.length;i+=8){
+   await Promise.all(peers.slice(i,i+8).map(async peer=>{profiles.set(peer,await row(peer))}));
+  }
+  for(const f of data||[]){
+   const peer=f.wallet_low===w?f.wallet_high:f.wallet_low;
+   const p=profiles.get(peer)||{address:peer,name:''};
+   if(f.status==='accepted')friends.push(p);
+   else if(f.initiator===w)sent.push(p);
+   else incoming.push(p);
+  }
   return send(op==='sent'?{sent}:{friends,incoming});
  }
  const p=wallet(b.peer||u.searchParams.get('peer'));
