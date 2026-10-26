@@ -64,7 +64,7 @@ export const SendDialog = ({ open, onOpenChange, initialRecipient = '', initialA
                 </DialogHeader>
                 {step === 'recipient' && <RecipientWithFriends input={input} onInput={setInput} onNext={(name, owner) => { setTo({ name, owner }); setStep('amount'); }} />}
                 {step === 'amount' && to && <AmountStep {...to} amount={amount} onAmount={setAmount} fee={fee.data} feeLoading={fee.isLoading} onBack={() => setStep('recipient')} onNext={() => setStep('review')} />}
-                {step === 'review' && to && wei && fee.data !== undefined && <ReviewStep {...to} wei={wei} fee={fee.data} error={reviewError} onBack={() => setStep('amount')} onConfirm={confirm} />}
+                {step === 'review' && to && !!wei && fee.data !== undefined && <ReviewStep {...to} wei={wei} fee={fee.data} error={reviewError} onBack={() => setStep('amount')} onConfirm={confirm} />}
                 {step === 'tx' && (
                     <>
                         <TxStatusPanel state={tx} />

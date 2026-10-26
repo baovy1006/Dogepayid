@@ -8,7 +8,7 @@ DogePay ID is a testnet-only, non-custodial social payments dApp for [DogeOS Chi
 ## Features
 | Feature | Trust boundary |
 | --- | --- |
-| Unified wallet connect | One 3-step experience: wallet, X account, server-verified wallet signature; Google can optionally join the same X identity |
+| Unified wallet connect | Official DogeOS wallet modal when a registered SDK Client ID is configured; otherwise a testnet-compatible wallet fallback. X/Google identity links are optional and separately verified |
 | Register/resolve Doge ID | On-chain IdentityRegistry |
 | Send, Receive, Request DOGE | Native DOGE transfer signed by user's wallet |
 | Savings Goals | On-chain SavingsVault. No APY or lockup |
@@ -17,7 +17,7 @@ DogePay ID is a testnet-only, non-custodial social payments dApp for [DogeOS Chi
 
 ## Dogecoin Layer 1 Wallet
 
-Dogecoin L1 wallet connection is available through supported browser wallets, initially **MyDoge** and **Doge Soft**. Users can connect, see their L1 address and available wallet-reported balance, copy their address, and disconnect. This integration is intentionally read-only: no mainnet transfers or bridges are initiated.
+Dogecoin L1 wallet connection can use compatible injected wallet providers where available, initially **MyDoge** and **Doge Soft**. MyDoge v3 Social Wallet is mobile-first; an extension is NOT assumed on desktop. Users can connect, see their L1 address and available wallet-reported balance, copy their address, and disconnect. This integration is intentionally read-only: no mainnet transfers or bridges are initiated.
 
 **Network separation:** Dogecoin L1 mainnet balances are not DogeOS Chikyū testnet balances; Doge ID, Pay, Savings and Friends remain on DogeOS. Cross-network asset transfers require separately implemented and verified bridging.
 
@@ -82,3 +82,26 @@ No top-level software license has been chosen by the project owner. Do not assum
 ## Unified DogePay Account
 
 Wallet + X + optional Google onboarding: [3-in-1 identity architecture and setup](./docs/IDENTITY_3IN1.md). OAuth providers and the verification backend must be configured before claiming account linking works.
+
+## Hackathon Demo (core only)
+
+1. Connect a DogeOS Chikyū Testnet EVM wallet (Chain ID `6281971`).
+2. Register or recover `@name.doge` through the on-chain registry.
+3. Search a registered friend, send and accept an invitation, and chat.
+4. Review a test DOGE payment, sign it in the wallet, and verify the receipt on the explorer.
+5. Refresh and verify state; use **Disconnect** to leave the account.
+
+X/Google linking is OPTIONAL. It must not block Doge ID, Pay, or Friends. Dogecoin L1 wallet connectivity does not by itself provide an EVM signer for Chikyū transactions.
+
+### DogeOS SDK activation
+
+- Install of `@dogeos/dogeos-sdk` is part of this build. The SDK modal activates ONLY after a real `VITE_DOGEOS_CLIENT_ID` has been registered through [DogeOS](https://sdk.dogeos.com/).
+- Until then DogePay retains the existing RainbowKit/DogeOS fallback. Do not present SDK or MyDoge mobile integration as verified before testing on a real device.
+- SDK wallet X/Google login and Supabase X/Google identity are separate systems; never infer the same verified account from provider names alone.
+- Keep Dogecoin L1 mainnet and DogeOS Testnet balances, keys and signing policies separate.
+
+### MyDoge V3 / X acceptance boundary
+
+The official DogeOS SDK can sign in with X and return the SDK wallet address. On Chikyū EVM, the SDK may synchronize this address to Wagmi; Pay uses ONLY that wallet's signer. **Do not assume signing into the same X account proves the SDK wallet equals the Social Wallet already stored on a user's phone.** Compare the DogeOS `0x` address with the MyDoge mobile DogeOS address and verify a wallet signature. Dogecoin L1 `D...` addresses are distinct.
+
+Do not call an X identity verified solely because a wallet connected. The prior Supabase X/Google OAuth system is a separate identity service and is optional to Pay/Friends. Never auto-pay, auto-sign or request private keys.

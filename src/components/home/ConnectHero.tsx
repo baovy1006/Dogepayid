@@ -9,7 +9,7 @@ export const ConnectHero = () => (
     <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-16 md:space-y-24">
         <section className="grid items-center gap-10 md:grid-cols-[1.15fr_1fr] md:gap-12">
             <div>
-                <motion.p variants={fadeUp} className="eyebrow">Social payments on DogeOS</motion.p>
+                <motion.p variants={fadeUp} className="eyebrow">Social payments on DogeOS Testnet</motion.p>
                 <motion.h1 variants={fadeUp} className="mt-4 font-display text-5xl leading-[0.95] tracking-tight sm:text-6xl md:text-7xl">
                     Send DOGE to <em className="text-primary">people</em>, not just addresses.
                 </motion.h1>

@@ -18,7 +18,7 @@ import {
 type Stage = 'wallet' | 'social' | 'verify' | 'done';
 type Social = { x: boolean; google: boolean; userId: string | null };
 const EMPTY_SOCIAL: Social = { x: false, google: false, userId: null };
-const stepNames = ['Connect wallet', 'Connect X', 'Sign & verify'];
+const stepNames = ['Connect wallet', 'Link X (optional)', 'Verify link'];
 const walletOptions: { kind: DogecoinWalletKind; name: string; url: string }[] = [
   { kind: 'mydoge', name: 'MyDoge', url: 'https://mydoge.com/' },
   { kind: 'dogesoft', name: 'Doge Soft', url: 'https://dogesoft.io/extension' },
@@ -117,7 +117,7 @@ export const UnifiedWalletButton = () => {
       const session = await connectDogecoinWallet(kind);
       setL1(session);
       setSelected({ kind, address: session.address });
-      setStage(social.x ? 'verify' : 'social');
+      setStage('social');
     } catch (e) { setError(e instanceof Error ? e.message : 'Wallet connection failed.'); }
     finally { setLoading(false); }
   };
@@ -203,7 +203,7 @@ export const UnifiedWalletButton = () => {
           <DialogContent className="max-h-[90vh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-2xl border-border bg-popover p-5 sm:p-6">
             <DialogHeader>
               <DialogTitle className="font-display text-2xl">{stage === 'done' ? 'Account connected' : 'Connect your DogePay ID'}</DialogTitle>
-              <DialogDescription>One account for your wallet, X identity, and optional Google sign-in.</DialogDescription>
+              <DialogDescription>Connect a DogeOS wallet for Testnet payments. Link X and Google only if you want a shared social profile.</DialogDescription>
             </DialogHeader>
             <div className="grid grid-cols-3 gap-2" aria-label={`Step ${stepIndex + 1} of 3`}>
               {stepNames.map((label, index) => <div key={label} className="min-w-0 space-y-1 text-center">
@@ -216,22 +216,30 @@ export const UnifiedWalletButton = () => {
 
             {stage === 'wallet' && <div className="space-y-3">
               <p className="text-sm font-semibold">1. Choose your wallet</p>
-              <p className="text-xs text-muted-foreground">Dogecoin L1 wallets are recommended for DogePay identity. DogeOS wallets remain available for testnet payments.</p>
-              {walletOptions.map(choice => <div key={choice.kind} className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card/40 p-3">
-                <div className="min-w-0"><p className="font-semibold">{choice.name}</p><p className="text-xs text-muted-foreground">Dogecoin L1 · {detected[choice.kind] ? 'Detected' : 'Extension not detected'}</p></div>
-                {detected[choice.kind]
-                  ? <Button size="sm" disabled={loading} onClick={() => void connectL1(choice.kind)}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Connect'}</Button>
-                  : <a className="inline-flex items-center gap-1 text-xs font-semibold text-primary" href={choice.url} target="_blank" rel="noopener noreferrer">Get wallet <ExternalLink className="h-3.5 w-3.5" /></a>}
-              </div>)}
-              {evmConnected && evmAddress ? <Button variant="outline" className="w-full justify-between" onClick={() => { setSelected({ kind: 'dogeos', address: evmAddress }); setStage(social.x ? 'verify' : 'social'); }}>
+              <p className="text-xs text-muted-foreground">For Pay, Friends and Doge ID use a DogeOS Testnet wallet. MyDoge Social Wallet is mobile-first; connecting Dogecoin L1 alone does not unlock Testnet payments.</p>
+              {evmConnected && evmAddress ? <Button variant="outline" className="w-full justify-between" onClick={() => { setSelected({ kind: 'dogeos', address: evmAddress }); setStage('social'); }}>
                 DogeOS · {shortenAddress(evmAddress)} <ChevronRight className="h-4 w-4" /></Button>
               : <Button variant="outline" className="w-full justify-between" onClick={() => { if (openConnectModal) { setSelected({ kind: 'dogeos', address: '' }); setOpen(false); openConnectModal(); } }}>Connect DogeOS Wallet <ChevronRight className="h-4 w-4" /></Button>}
+
+              <p className="pt-2 text-xs font-semibold text-muted-foreground">Dogecoin L1 — optional identity wallet</p>
+              {walletOptions.map(choice => <div key={choice.kind} className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card/40 p-3">
+                <div className="min-w-0"><p className="font-semibold">{choice.name}</p><p className="text-xs text-muted-foreground">Dogecoin L1 · {detected[choice.kind] ? 'Ready' : 'Mobile wallet / not detected'}</p></div>
+                {detected[choice.kind]
+                  ? <Button size="sm" disabled={loading} onClick={() => void connectL1(choice.kind)}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Connect'}</Button>
+                  : <a className="inline-flex items-center gap-1 text-xs font-semibold text-primary" href={choice.url} target="_blank" rel="noopener noreferrer">Wallet info <ExternalLink className="h-3.5 w-3.5" /></a>}
+              </div>)}
             </div>}
 
             {stage === 'social' && <div className="space-y-3">
               <Button variant="ghost" size="sm" className="justify-start" onClick={() => setStage('wallet')}><ChevronLeft className="h-4 w-4" /> Change wallet</Button>
               <div className="rounded-xl border border-border p-3 text-xs">Wallet: <span className="font-mono">{selected?.address}</span></div>
-              <p className="text-sm font-semibold">2. Connect your X account</p>
+              {selected?.kind !== 'dogeos' && <p className="rounded-xl border border-warning/30 bg-warning/5 p-3 text-xs text-muted-foreground">Dogecoin L1 is separate from DogeOS. To make Testnet payments or use on-chain Doge ID, also connect a DogeOS EVM wallet.</p>}
+              <p className="text-sm font-semibold">2. Optionally link X to your wallet</p>
+              <div className="rounded-xl border border-primary/25 bg-primary/5 p-3">
+                <p className="text-sm font-semibold">Ready to use DogePay</p>
+                <p className="mt-1 text-xs text-muted-foreground">X and Google are not needed to use Pay, Doge ID or wallet-authenticated Friends on DogeOS. You can link social accounts later.</p>
+                <Button className="mt-3 w-full" onClick={() => setOpen(false)}>Continue to DogePay <ChevronRight className="h-4 w-4" /></Button>
+              </div>
               {!authConfigured && <p role="alert" className="text-sm text-warning">OAuth requires the public Supabase project key and X provider configuration.</p>}
               <Button className="w-full" disabled={!authConfigured || loading} onClick={() => void runOAuth('x')}>
                 {social.x ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}

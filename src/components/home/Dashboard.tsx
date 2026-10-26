@@ -4,8 +4,12 @@ import { BalanceCard } from './BalanceCard';
 import { DogeIdCard } from './DogeIdCard';
 import { RecentActivity } from './RecentActivity';
 import { SavingsSummary } from './SavingsSummary';
+import { CONTRACTS } from '@/lib/config';
+import { getVaultAddress } from '@/lib/vaultService';
 
-export const Dashboard = () => (
+export const Dashboard = () => {
+    const hasVault = Boolean(CONTRACTS.savingsVault || getVaultAddress());
+    return (
     <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-4 md:grid-cols-5 md:gap-5">
         <motion.div variants={fadeUp} className="md:col-span-5">
             <p className="eyebrow">Social payments on DogeOS</p>
@@ -18,12 +22,13 @@ export const Dashboard = () => (
             <motion.div variants={fadeUp}>
                 <DogeIdCard />
             </motion.div>
-            <motion.div variants={fadeUp}>
+            {hasVault && <motion.div variants={fadeUp}>
                 <SavingsSummary />
-            </motion.div>
+            </motion.div>}
         </div>
         <motion.div variants={fadeUp} className="md:col-span-5">
             <RecentActivity limit={5} />
         </motion.div>
     </motion.div>
-);
+    );
+};

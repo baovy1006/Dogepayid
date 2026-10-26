@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { Droplets, ExternalLink } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
 import { UnifiedWalletButton } from '@/components/wallet/UnifiedWalletButton';
+import { DogeOSSdkConnectButton } from '@/components/wallet/DogeOSSdkConnectButton';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { NAV_ITEMS } from '@/lib/nav';
 import { cn } from '@/lib/utils';
@@ -23,7 +24,7 @@ export const TopBar = () => (
           <Droplets className="h-3.5 w-3.5" aria-hidden /><span>Faucet</span><ExternalLink className="hidden h-3 w-3 sm:block" aria-hidden />
         </a>
         <NotificationBell />
-        <UnifiedWalletButton />
+        {import.meta.env.VITE_DOGEOS_CLIENT_ID?.trim() ? <DogeOSSdkConnectButton /> : <UnifiedWalletButton />}
       </div>
     </div>
   </header>
