@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Address } from 'viem';
+import { createPortal, flushSync } from 'react-dom';
 import { TxStatusPanel } from '@/components/tx/TxStatusPanel';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -45,6 +46,7 @@ export const SendDialog = ({ open, onOpenChange, initialRecipient = '', initialA
 
     const confirm = async () => {
         if (!to || !wei || submissionInProgress.current) return;
+        console.info('[dogepay:wallet]', 'ui:send_clicked');
         submissionInProgress.current = true;
         setReviewError(null);
         try {
@@ -59,7 +61,8 @@ export const SendDialog = ({ open, onOpenChange, initialRecipient = '', initialA
                 setReviewError('Your balance changed and no longer covers this payment plus fee.');
                 return;
             }
-            setStep('tx');
+            // Remove app dialog's focus trap before asking the SDK to sign.
+            flushSync(() => setStep('tx'));
             const receipt = await runTrackedTx(() => sendDoge(to.owner, wei), { kind: 'send', amountWei: wei.toString(), counterparty: { address: to.owner, dogeId: to.name ? formatDogeId(to.name) : undefined } }, setTx);
             if (receipt) void balance.refetch();
         } catch (error) {
@@ -70,7 +73,8 @@ export const SendDialog = ({ open, onOpenChange, initialRecipient = '', initialA
     };
 
     return (
-        <Dialog open={open} onOpenChange={(o) => !busy && onOpenChange(o)}>
+        <>
+        <Dialog open={open && step !== 'tx'} onOpenChange={(o) => step !== 'tx' && !busy && onOpenChange(o)}>
             <DialogContent className="max-w-md rounded-xl border-border bg-popover">
                 <DialogHeader>
                     <DialogTitle className="font-display text-3xl font-normal">{step === 'review' ? 'Review payment' : 'Send DOGE'}</DialogTitle>
@@ -79,18 +83,28 @@ export const SendDialog = ({ open, onOpenChange, initialRecipient = '', initialA
                 {step === 'recipient' && <RecipientWithFriends input={input} onInput={setInput} onNext={(name, owner) => { setTo({ name, owner }); setStep('amount'); }} />}
                 {step === 'amount' && to && <AmountStep {...to} amount={amount} onAmount={setAmount} fee={fee.data} feeLoading={fee.isLoading} onBack={() => setStep('recipient')} onNext={() => setStep('review')} />}
                 {step === 'review' && to && !!wei && fee.data !== undefined && <ReviewStep {...to} wei={wei} fee={fee.data} error={reviewError} onBack={() => setStep('amount')} onConfirm={confirm} />}
-                {step === 'tx' && (
-                    <>
-                        <TxStatusPanel state={tx} />
-                        {tx.phase === 'confirmed' && to && wei && <p className="text-center text-sm">Sent <span className="tabular font-semibold">{formatDoge(wei, 18)} DOGE</span> to {to.name ? formatDogeId(to.name) : to.owner}</p>}
-                        {!busy && (
-                            <Button variant="secondary" className="w-full rounded-full" onClick={() => (tx.phase === 'confirmed' || tx.phase === 'pending' ? onOpenChange(false) : setStep('review'))}>
-                                {tx.phase === 'confirmed' ? 'Done' : tx.phase === 'pending' ? 'Close' : 'Back to review'}
-                            </Button>
-                        )}
-                    </>
-                )}
             </DialogContent>
         </Dialog>
+        {open && step === 'tx' && typeof document !== 'undefined' && createPortal(
+            <section role="region" aria-label="Payment transaction status"
+                className="pointer-events-none fixed inset-x-3 bottom-3 z-40 mx-auto max-w-md">
+                <div className="pointer-events-auto max-h-[80vh] overflow-y-auto rounded-xl border border-border bg-popover p-5 shadow-2xl">
+                    <p className="text-sm font-semibold">Send DOGE</p>
+                    <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
+                        {to?.name ? formatDogeId(to.name) : to?.owner} · {wei ? formatDoge(wei, 18) : '—'} DOGE
+                    </p>
+                    <TxStatusPanel state={tx} />
+                    {tx.phase === 'confirmed' && <Button variant="secondary" className="w-full" onClick={() => onOpenChange(false)}>Done</Button>}
+                    {(tx.phase === 'failed' || tx.phase === 'rejected') &&
+                        <Button variant="secondary" className="w-full" onClick={() => setStep('review')}>Back to review</Button>}
+                    {tx.phase === 'pending' && tx.error &&
+                        <Button variant="secondary" className="w-full" onClick={() => onOpenChange(false)}>Close status</Button>}
+                    {tx.phase === 'unknown' && <p className="mt-2 text-center text-xs text-muted-foreground">
+                        Submission remains locked. Check history before starting another payment.
+                    </p>}
+                </div>
+            </section>, document.body
+        )}
+        </>
     );
 };

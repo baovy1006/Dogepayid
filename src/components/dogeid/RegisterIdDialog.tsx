@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Lock } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
+import { createPortal, flushSync } from 'react-dom';
 import { TxStatusPanel } from '@/components/tx/TxStatusPanel';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -25,6 +26,8 @@ export const RegisterIdDialog = ({ open, onOpenChange }: { open: boolean; onOpen
     const submit = async () => {
         if (!canSubmit || !address || submitting.current) return;
         submitting.current = true;
+        console.info('[dogepay:wallet]', 'ui:register_clicked');
+        flushSync(() => setTx({ phase: 'signing' }));
         try {
             const receipt = await runTrackedTx(() => registerName(name), { kind: 'register_id', label: formatDogeId(name) }, setTx);
             if (receipt?.status === 'success') void qc.invalidateQueries({ queryKey: ['dogeId'] });
@@ -40,7 +43,8 @@ export const RegisterIdDialog = ({ open, onOpenChange }: { open: boolean; onOpen
     };
 
     return (
-        <Dialog open={open} onOpenChange={close}>
+        <>
+        <Dialog open={open && tx.phase === 'idle'} onOpenChange={close}>
             <DialogContent className="max-w-md rounded-xl border-border bg-popover">
                 <DialogHeader>
                     <DialogTitle className="font-display text-3xl font-normal">Claim your Doge ID</DialogTitle>
@@ -64,18 +68,26 @@ export const RegisterIdDialog = ({ open, onOpenChange }: { open: boolean; onOpen
                         <p className="text-xs text-muted-foreground">Registration is an on-chain transaction and requires a network fee. Your wallet will ask for confirmation once the contract and fee checks complete.</p>
                         <Button onClick={() => void submit()} disabled={!canSubmit} className="h-12 w-full rounded-full">Register {name && !problem ? formatDogeId(name) : ''}</Button>
                     </div>
-                ) : (
-                    <>
-                        <TxStatusPanel state={tx} />
-                        {tx.phase !== 'signing' && tx.phase !== 'pending' && (
-                            <Button variant="secondary" className="w-full rounded-full" onClick={() => (tx.phase === 'confirmed' ? close(false) : setTx({ phase: 'idle' }))}>
-                                {tx.phase === 'confirmed' ? 'Done' : 'Try again'}
-                            </Button>
-                        )}
-                        {tx.phase === 'pending' && tx.error && <Button variant="secondary" className="w-full rounded-full" onClick={() => onOpenChange(false)}>Close</Button>}
-                    </>
-                )}
-            </DialogContent>
+                ) : null}            </DialogContent>
         </Dialog>
+        {open && tx.phase !== 'idle' && typeof document !== 'undefined' && createPortal(
+            <section role="region" aria-label="Doge ID registration status"
+                className="pointer-events-none fixed inset-x-3 bottom-3 z-40 mx-auto max-w-md">
+                <div className="pointer-events-auto max-h-[80vh] overflow-y-auto rounded-xl border border-border bg-popover p-5 shadow-2xl">
+                    <p className="text-sm font-semibold">Claim {name ? formatDogeId(name) : 'Doge ID'}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">On-chain registration · {address?.slice(0, 6)}…{address?.slice(-4)}</p>
+                    <TxStatusPanel state={tx} />
+                    {tx.phase === 'confirmed' && <Button variant="secondary" className="w-full" onClick={() => close(false)}>Done</Button>}
+                    {(tx.phase === 'failed' || tx.phase === 'rejected') &&
+                        <Button variant="secondary" className="w-full" onClick={() => setTx({ phase: 'idle' })}>Back to registration</Button>}
+                    {tx.phase === 'pending' && tx.error &&
+                        <Button variant="secondary" className="w-full" onClick={() => close(false)}>Close status</Button>}
+                    {tx.phase === 'unknown' && <p className="mt-2 text-center text-xs text-muted-foreground">
+                        Do not register again until you have verified your wallet history.
+                    </p>}
+                </div>
+            </section>, document.body
+        )}
+        </>
     );
 };

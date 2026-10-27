@@ -6,6 +6,33 @@ export interface EvmSdkProvider {
   request(args: { method: string; params?: readonly unknown[] | object }): Promise<unknown>;
 }
 type Session = { address: Address; provider: EvmSdkProvider };
+/** Only constant stage identifiers: no keys, signatures, amount, address or calldata. */
+function trace(stage: string): void {
+  console.info('[dogepay:wallet]', stage);
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('dogepay:wallet-trace', { detail: { stage } }));
+}
+export class UnknownSdkSubmissionError extends Error {
+  constructor() {
+    super('Wallet submission status is unknown. Check your wallet history before retrying. Closing the popup does not cancel a broadcast.');
+    this.name = 'UnknownSdkSubmissionError';
+  }
+}
+function explicitlyRejected(error: unknown): boolean {
+  const e = error as { code?: number | string; error?: { code?: number | string } } | null;
+  return e?.code === 4001 || e?.code === 'ACTION_REJECTED' ||
+    e?.error?.code === 4001 || e?.error?.code === 'ACTION_REJECTED';
+}
+async function readProvider(provider: EvmSdkProvider, method: string, params?: readonly unknown[] | object): Promise<unknown> {
+  trace(method + ':requested');
+  try {
+    const value = await withReadDeadline(provider.request({ method, ...(params ? { params } : {}) }), method);
+    trace(method + ':completed');
+    return value;
+  } catch (error) {
+    trace(method + ':error');
+    throw error;
+  }
+}
 let session: Session | null = null;
 export function setSdkSignerSession(next: Session | null) { session = next; }
 export function sdkSignerFor(address: Address): Session | null {
@@ -27,10 +54,10 @@ export async function sendThroughSdkProvider(input: {
 }): Promise<Hash> {
   const active = sdkSignerFor(input.from);
   if (!active) throw new Error('Social Wallet provider is not matched to the current signer. Reconnect X.');
-  const chainRaw = await withReadDeadline(active.provider.request({ method: 'eth_chainId' }), 'eth_chainId');
+  const chainRaw = await readProvider(active.provider, 'eth_chainId');
   if (typeof chainRaw !== 'string' || BigInt(chainRaw) !== BigInt(TARGET_CHAIN.id))
     throw new Error('The Social Wallet is not on DogeOS Chikyū Testnet. No signature requested.');
-  const accounts = await withReadDeadline(active.provider.request({ method: 'eth_accounts' }), 'eth_accounts');
+  const accounts = await readProvider(active.provider, 'eth_accounts');
   if (!Array.isArray(accounts) || !accounts.some(a => typeof a === 'string' && a.toLowerCase() === input.from.toLowerCase()))
     throw new Error('Social Wallet does not expose the expected DogeOS address. Reconnect X. No signature requested.');
   // Legacy fee fields for SDK compatibility: do not mix gasPrice with EIP-1559 fee fields.
@@ -45,19 +72,31 @@ export async function sendThroughSdkProvider(input: {
   // Diagnose the SDK provider itself BEFORE opening a signing popup.
   // Both calls are read-only, timeout safely, and cannot send any DOGE.
   const [price, estimate] = await Promise.all([
-    withReadDeadline(active.provider.request({ method: 'eth_gasPrice' }), 'eth_gasPrice'),
-    withReadDeadline(active.provider.request({ method: 'eth_estimateGas', params: [transaction] }), 'eth_estimateGas'),
+    readProvider(active.provider, 'eth_gasPrice'),
+    readProvider(active.provider, 'eth_estimateGas', [transaction]),
   ]);
   if (typeof price !== 'string' || !/^0x[0-9a-f]+$/i.test(price) || BigInt(price) <= 0n ||
       typeof estimate !== 'string' || !/^0x[0-9a-f]+$/i.test(estimate) || BigInt(estimate) <= 0n) {
     throw new Error('DogeOS Social Wallet cannot provide a valid network fee. No signing request was sent. Use an external EVM wallet until the provider recovers.');
   }
   // Exactly one submission, with explicit user approval. Never time out / retry signing.
-  const response = await active.provider.request({
-    method: 'eth_sendTransaction',
-    params: [transaction],
-  });
-  if (typeof response !== 'string' || !isHash(response))
-    throw new Error('Social Wallet did not return a valid transaction hash. Inspect wallet activity before trying again.');
+  // Beyond this boundary, errors do not prove that the SDK did not broadcast.
+  trace('eth_sendTransaction:requested');
+  let response: unknown;
+  try {
+    response = await active.provider.request({ method: 'eth_sendTransaction', params: [transaction] });
+  } catch (error) {
+    if (explicitlyRejected(error)) {
+      trace('eth_sendTransaction:rejected');
+      throw error;
+    }
+    trace('eth_sendTransaction:unknown');
+    throw new UnknownSdkSubmissionError();
+  }
+  if (typeof response !== 'string' || !isHash(response)) {
+    trace('eth_sendTransaction:invalid_response');
+    throw new UnknownSdkSubmissionError();
+  }
+  trace('eth_sendTransaction:hash_received');
   return response;
 }

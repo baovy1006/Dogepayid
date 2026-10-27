@@ -2,9 +2,10 @@ import { BaseError, ContractFunctionRevertedError, InsufficientFundsError, type 
 import { getBlock, waitForTransactionReceipt } from 'wagmi/actions';
 import { upsertActivity, type ActivityRecord } from './activityStore';
 import { TARGET_CHAIN } from './config';
+import { UnknownSdkSubmissionError } from './sdkSignerBridge';
 import { ensureTargetChain, getConnectedAddress, isUserRejection, wagmiConfig } from './wagmi';
 
-export type TxPhase = 'idle' | 'signing' | 'pending' | 'confirmed' | 'failed' | 'rejected';
+export type TxPhase = 'idle' | 'signing' | 'pending' | 'confirmed' | 'failed' | 'rejected' | 'unknown';
 
 export interface TxState {
     phase: TxPhase;
@@ -82,6 +83,10 @@ export async function runTrackedTx(
             // Broadcast succeeded but we lost track of it (RPC timeout). It may still confirm,
             // so it stays pending — never marked failed or confirmed without a receipt.
             onState({ phase: 'pending', hash, error: 'Still waiting for confirmation. Check the explorer for the latest status.' });
+            return null;
+        }
+        if (err instanceof UnknownSdkSubmissionError) {
+            onState({ phase: 'unknown', error: err.message });
             return null;
         }
         onState({ phase: isUserRejection(err) ? 'rejected' : 'failed', hash, error: describeTxError(err) });
