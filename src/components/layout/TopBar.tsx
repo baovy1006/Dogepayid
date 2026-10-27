@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { Droplets, ExternalLink } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
-import { UnifiedWalletButton } from '@/components/wallet/UnifiedWalletButton';
+import { DirectWalletButton } from '@/components/wallet/DirectWalletButton';
 import { DogeOSSdkConnectButton } from '@/components/wallet/DogeOSSdkConnectButton';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { NAV_ITEMS } from '@/lib/nav';
@@ -19,12 +19,13 @@ export const TopBar = () => (
       <div className="flex shrink-0 items-center gap-2">
         <a href="https://faucet.testnet.dogeos.com/" target="_blank" rel="noopener noreferrer"
           title="Claim free DogeOS testnet DOGE — one claim per 24 hours"
-          className="interactive inline-flex h-9 items-center gap-1.5 rounded-full border border-primary/35 bg-primary/10 px-2.5 text-xs font-semibold text-primary hover:bg-primary/20 sm:px-3"
+          className="interactive hidden h-9 items-center gap-1.5 rounded-full border border-primary/35 sm:inline-flex bg-primary/10 px-2.5 text-xs font-semibold text-primary hover:bg-primary/20 sm:px-3"
           aria-label="Open official DogeOS testnet faucet in a new tab">
           <Droplets className="h-3.5 w-3.5" aria-hidden /><span>Faucet</span><ExternalLink className="hidden h-3 w-3 sm:block" aria-hidden />
         </a>
         <NotificationBell />
-        {import.meta.env.VITE_DOGEOS_CLIENT_ID?.trim() ? <DogeOSSdkConnectButton /> : <UnifiedWalletButton />}
+        {import.meta.env.VITE_DOGEOS_CLIENT_ID?.trim() ? <DogeOSSdkConnectButton /> : null}
+        <DirectWalletButton />
       </div>
     </div>
   </header>

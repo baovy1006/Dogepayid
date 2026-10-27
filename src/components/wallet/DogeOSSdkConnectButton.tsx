@@ -47,8 +47,8 @@ export const DogeOSSdkConnectButton = () => {
 
   const open = useCallback(() => {setError(''); openModal();}, [openModal]);
   useEffect(() => {
-    window.addEventListener('dogepay:open-wallet', open);
-    return () => window.removeEventListener('dogepay:open-wallet', open);
+    window.addEventListener('dogepay:open-x', open);
+    return () => window.removeEventListener('dogepay:open-x', open);
   }, [open]);
 
   const verifyOwnership = async () => {
@@ -105,8 +105,8 @@ export const DogeOSSdkConnectButton = () => {
       onClick={isConnected ? () => setDetailsOpen(true) : open} disabled={busy || isConnecting}>
       <Wallet className="h-4 w-4" />
       <span className="hidden sm:inline">{isConnecting ? 'Connecting...' : isConnected
-        ? sdk.address ? shortenAddress(sdk.address) : 'My Wallet' : 'Connect X / Wallet'}</span>
-      <span className="sm:hidden">{isConnected ? 'Account' : 'Connect'}</span>
+        ? sdk.address ? shortenAddress(sdk.address) : 'My Wallet' : 'Connect X'}</span>
+      <span className="sm:hidden">X</span>
     </Button>
     {isConnected && <Button type="button" variant="outline" size="sm" disabled={busy}
       className="h-9 gap-1 rounded-full border-destructive/40 px-2 text-destructive sm:px-3"
