@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Lock } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { TxStatusPanel } from '@/components/tx/TxStatusPanel';
 import { Button } from '@/components/ui/button';
@@ -18,12 +18,19 @@ export const RegisterIdDialog = ({ open, onOpenChange }: { open: boolean; onOpen
     const qc = useQueryClient();
     const [input, setInput] = useState('');
     const [tx, setTx] = useState<TxState>({ phase: 'idle' });
+    const submitting = useRef(false);
     const { name, problem, owner, isLoading, isError, isResolved } = useResolveDogeId(input);
     const canSubmit = isResolved && !owner && tx.phase === 'idle';
 
     const submit = async () => {
-        const receipt = await runTrackedTx(() => registerName(name), { kind: 'register_id', label: formatDogeId(name) }, setTx);
-        if (receipt?.status === 'success') qc.invalidateQueries({ queryKey: ['dogeId'] });
+        if (!canSubmit || !address || submitting.current) return;
+        submitting.current = true;
+        try {
+            const receipt = await runTrackedTx(() => registerName(name), { kind: 'register_id', label: formatDogeId(name) }, setTx);
+            if (receipt?.status === 'success') void qc.invalidateQueries({ queryKey: ['dogeId'] });
+        } finally {
+            submitting.current = false;
+        }
     };
 
     const close = (o: boolean) => {
@@ -54,7 +61,8 @@ export const RegisterIdDialog = ({ open, onOpenChange }: { open: boolean; onOpen
                             <Lock className="h-4 w-4 shrink-0 text-primary" aria-hidden />
                             One name per wallet, permanent. It cannot be changed or transferred in this version. Registered to {address?.slice(0, 6)}…{address?.slice(-4)}.
                         </p>
-                        <Button onClick={submit} disabled={!canSubmit} className="h-12 w-full rounded-full">Register {name && !problem ? formatDogeId(name) : ''}</Button>
+                        <p className="text-xs text-muted-foreground">Registration is an on-chain transaction and requires a network fee. Your wallet will ask for confirmation once the contract and fee checks complete.</p>
+                        <Button onClick={() => void submit()} disabled={!canSubmit} className="h-12 w-full rounded-full">Register {name && !problem ? formatDogeId(name) : ''}</Button>
                     </div>
                 ) : (
                     <>
