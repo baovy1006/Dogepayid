@@ -34,16 +34,28 @@ export async function sendThroughSdkProvider(input: {
   if (!Array.isArray(accounts) || !accounts.some(a => typeof a === 'string' && a.toLowerCase() === input.from.toLowerCase()))
     throw new Error('Social Wallet does not expose the expected DogeOS address. Reconnect X. No signature requested.');
   // Legacy fee fields for SDK compatibility: do not mix gasPrice with EIP-1559 fee fields.
+  const transaction = {
+    from: input.from,
+    to: input.to,
+    value: toHex(input.value),
+    gas: toHex(input.gas),
+    gasPrice: toHex(input.gasPrice),
+    data: input.data ?? '0x',
+  };
+  // Diagnose the SDK provider itself BEFORE opening a signing popup.
+  // Both calls are read-only, timeout safely, and cannot send any DOGE.
+  const [price, estimate] = await Promise.all([
+    withReadDeadline(active.provider.request({ method: 'eth_gasPrice' }), 'eth_gasPrice'),
+    withReadDeadline(active.provider.request({ method: 'eth_estimateGas', params: [transaction] }), 'eth_estimateGas'),
+  ]);
+  if (typeof price !== 'string' || !/^0x[0-9a-f]+$/i.test(price) || BigInt(price) <= 0n ||
+      typeof estimate !== 'string' || !/^0x[0-9a-f]+$/i.test(estimate) || BigInt(estimate) <= 0n) {
+    throw new Error('DogeOS Social Wallet cannot provide a valid network fee. No signing request was sent. Use an external EVM wallet until the provider recovers.');
+  }
+  // Exactly one submission, with explicit user approval. Never time out / retry signing.
   const response = await active.provider.request({
     method: 'eth_sendTransaction',
-    params: [{
-      from: input.from,
-      to: input.to,
-      value: toHex(input.value),
-      gas: toHex(input.gas),
-      gasPrice: toHex(input.gasPrice),
-      data: input.data ?? '0x',
-    }],
+    params: [transaction],
   });
   if (typeof response !== 'string' || !isHash(response))
     throw new Error('Social Wallet did not return a valid transaction hash. Inspect wallet activity before trying again.');
