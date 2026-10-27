@@ -41,11 +41,14 @@ export const NotificationBell=()=>{
    if(r.ok){const d=await r.json().catch(()=>({}));setFeed(f=>({...f,lastRead:Math.max(now,d.lastRead||0)}));}}catch{}
  };
  return <Popover open={open} onOpenChange={v=>{setOpen(v);if(v)void mark();}}>
- <PopoverTrigger asChild><Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full border border-border" aria-label={'Notifications: '+unread+' unread'}>
-  <Bell className="h-4 w-4"/>{unread>0&&<span className="absolute -right-1 -top-1 rounded-full bg-primary px-1 text-[10px] text-primary-foreground">{unread>99?'99+':unread}</span>}
+ <PopoverTrigger asChild><Button variant="ghost" size="icon"
+  className="relative h-9 w-9 rounded-full border border-border/90 bg-secondary/65 text-foreground shadow-sm shadow-black/10 transition-colors hover:border-primary/55 hover:bg-secondary hover:text-foreground focus-visible:ring-primary"
+  style={{color: 'hsl(var(--foreground))'}}
+  aria-label={'Notifications: '+unread+' unread'}>
+  <Bell className="h-4 w-4 text-foreground" style={{color: 'hsl(var(--foreground))'}} aria-hidden />{unread>0&&<span className="absolute -right-1 -top-1 rounded-full bg-primary px-1 text-[10px] text-primary-foreground">{unread>99?'99+':unread}</span>}
  </Button></PopoverTrigger>
- <PopoverContent align="end" className="z-50 w-[min(340px,calc(100vw-20px))] rounded-xl border-border bg-popover p-0">
- <h3 className="border-b border-border p-3 font-semibold">Notifications</h3>
+ <PopoverContent align="end" className="z-50 w-[min(340px,calc(100vw-20px))] rounded-xl border-border bg-popover p-0 text-popover-foreground shadow-xl shadow-black/30">
+ <h3 className="border-b border-border p-3 font-semibold text-popover-foreground">Notifications</h3>
  <div className="max-h-[340px] overflow-y-auto">{displayed.length===0?<p className="p-4 text-sm text-muted-foreground">No notifications yet.</p>:
  displayed.map(n=><div key={n.id} className="border-b border-border/50 p-3">
   <p className="text-sm font-semibold">{n.title}</p><p className="break-words text-xs text-muted-foreground">{n.detail}</p>

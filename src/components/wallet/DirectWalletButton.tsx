@@ -45,13 +45,14 @@ const DirectWalletControls = ({
 
   return <div className="flex items-center gap-1">
     <Button type="button" size="sm" variant="outline"
-      className="h-10 gap-1.5 rounded-full px-2 sm:px-3"
+      className="h-10 gap-1.5 rounded-full border-border/90 bg-secondary/70 px-2 text-foreground shadow-sm shadow-black/10 transition-colors hover:border-primary/55 hover:bg-secondary hover:text-foreground focus-visible:ring-primary sm:px-3"
+      style={{color: 'hsl(var(--foreground))'}}
       aria-label={isConnected ? 'Manage DogeOS wallet' : 'Connect DogeOS EVM wallet'}
       disabled={!mounted || busy || (!isConnected && !openConnectModal)}
       onClick={() => { if (isConnected) openAccountModal?.(); else openConnectModal?.(); }}>
-      <Wallet className="h-4 w-4" />
-      <span className="hidden sm:inline">{isConnected && address ? shortenAddress(address) : 'Connect Wallet'}</span>
-      <span className="sm:hidden">Wallet</span>
+      <Wallet className="h-4 w-4 text-foreground" style={{color: 'hsl(var(--foreground))'}} aria-hidden />
+      <span className="hidden sm:inline text-foreground" style={{color: 'hsl(var(--foreground))'}}>{isConnected && address ? shortenAddress(address) : 'Connect Wallet'}</span>
+      <span className="sm:hidden text-foreground" style={{color: 'hsl(var(--foreground))'}}>Wallet</span>
     </Button>
     {isConnected && <Button type="button" size="sm" variant="ghost" className="h-10 w-8 p-0 text-destructive"
       aria-label="Disconnect DogeOS wallet" disabled={busy} onClick={() => void disconnectWallet()}>
