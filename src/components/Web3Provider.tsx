@@ -18,6 +18,18 @@ const dogeOSConfig: WalletConnectKitConfig | null = sdkClientId ? {
     basicLogins: ['externalWallets'],
     socialLogins: [{type: 'x'}, {type: 'google'}],
   },
+  theme: {
+    defaultTheme: 'dark',
+    themes: {
+      dark: {
+        colors: {
+          primary: { DEFAULT: BRAND_COLORS.gold },
+          background: BRAND_COLORS.obsidian,
+          content1: '#1B2026',
+        },
+      },
+    },
+  },
   walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || undefined,
   metadata: {
     name: 'DogePay ID',

@@ -4,7 +4,7 @@ import type { TxState } from '@/lib/txService';
 import { cn } from '@/lib/utils';
 
 const COPY: Record<Exclude<TxState['phase'], 'idle'>, { title: string; body: string }> = {
-    signing: { title: 'Confirm in your wallet', body: 'Review the details in your wallet and approve to continue.' },
+    signing: { title: 'Confirm in your wallet', body: 'Review recipient, amount and fee in your wallet. If network fee keeps spinning, do not resubmit: cancel the wallet prompt first and check transaction history before retrying.' },
     pending: { title: 'Waiting for confirmation', body: `Submitted to ${TARGET_CHAIN.name}. This usually takes a few seconds.` },
     confirmed: { title: 'Confirmed on-chain', body: 'The network has confirmed this transaction.' },
     failed: { title: 'Transaction failed', body: 'Nothing was confirmed. No DOGE moved unless the explorer says otherwise.' },

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Address } from 'viem';
 import { TxStatusPanel } from '@/components/tx/TxStatusPanel';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ export const SendDialog = ({ open, onOpenChange, initialRecipient = '', initialA
     const [to, setTo] = useState<{ name: string; owner: Address } | null>(null);
     const [reviewError, setReviewError] = useState<string | null>(null);
     const [tx, setTx] = useState<TxState>({ phase: 'idle' });
+    const submissionInProgress = useRef(false);
     const fee = useSendFee(to?.owner);
     const balance = useDogeBalance();
     const wei = parseDogeAmount(amount);
@@ -43,16 +44,29 @@ export const SendDialog = ({ open, onOpenChange, initialRecipient = '', initialA
     }, [open, initialRecipient, initialAmount]);
 
     const confirm = async () => {
-        if (!to || !wei) return;
+        if (!to || !wei || submissionInProgress.current) return;
+        submissionInProgress.current = true;
         setReviewError(null);
-        // Re-resolve right before signing so a stale lookup can never redirect funds.
-        const fresh = to.name ? await resolveName(to.name).catch(() => null) : to.owner;
-        if (!fresh || fresh.toLowerCase() !== to.owner.toLowerCase()) return setReviewError('This Doge ID no longer resolves to the address shown. Payment stopped.');
-        const latest = (await balance.refetch()).data?.value;
-        if (latest !== undefined && fee.data !== undefined && wei + fee.data > latest) return setReviewError('Your balance changed and no longer covers this payment plus fee.');
-        setStep('tx');
-        const receipt = await runTrackedTx(() => sendDoge(to.owner, wei), { kind: 'send', amountWei: wei.toString(), counterparty: { address: to.owner, dogeId: to.name ? formatDogeId(to.name) : undefined } }, setTx);
-        if (receipt) balance.refetch();
+        try {
+            // Re-resolve right before signing so a stale lookup can never redirect funds.
+            const fresh = to.name ? await resolveName(to.name).catch(() => null) : to.owner;
+            if (!fresh || fresh.toLowerCase() !== to.owner.toLowerCase()) {
+                setReviewError('This Doge ID no longer resolves to the address shown. Payment stopped.');
+                return;
+            }
+            const latest = (await balance.refetch()).data?.value;
+            if (latest !== undefined && fee.data !== undefined && wei + fee.data > latest) {
+                setReviewError('Your balance changed and no longer covers this payment plus fee.');
+                return;
+            }
+            setStep('tx');
+            const receipt = await runTrackedTx(() => sendDoge(to.owner, wei), { kind: 'send', amountWei: wei.toString(), counterparty: { address: to.owner, dogeId: to.name ? formatDogeId(to.name) : undefined } }, setTx);
+            if (receipt) void balance.refetch();
+        } catch (error) {
+            setReviewError(error instanceof Error ? error.message : 'Could not prepare the payment.');
+        } finally {
+            submissionInProgress.current = false;
+        }
     };
 
     return (
