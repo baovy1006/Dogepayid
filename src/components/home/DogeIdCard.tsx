@@ -21,7 +21,7 @@ export const DogeIdCard = () => {
     return (
         <section className="glass-card p-6" aria-labelledby="dogeid-title">
             <div className="flex items-center justify-between">
-                <h2 id="dogeid-title" className="flex items-center gap-2 text-sm font-medium">
+                <h2 id="dogeid-title" className="dogepay-readable flex items-center gap-2 text-sm font-medium">
                     <AtSign className="h-4 w-4 text-primary" aria-hidden /> Doge ID
                 </h2>
                 {name ? <StatusPill tone="success">Verified on-chain</StatusPill> : <StatusPill tone="muted">{isLoading ? 'Checking…' : 'Not registered'}</StatusPill>}
@@ -30,7 +30,7 @@ export const DogeIdCard = () => {
                 <Skeleton className="mt-5 h-9 w-48" />
             ) : name ? (
                 <>
-                    <button onClick={() => copyToClipboard(formatDogeId(name), 'Doge ID copied')} className="interactive mt-5 flex items-center gap-2 text-left font-display text-3xl hover:text-primary" aria-label="Copy Doge ID">
+                    <button onClick={() => copyToClipboard(formatDogeId(name), 'Doge ID copied')} className="dogepay-readable interactive mt-5 flex items-center gap-2 text-left font-display text-3xl hover:text-primary" aria-label="Copy Doge ID">
                         {formatDogeId(name)} <Copy className="h-4 w-4 text-muted-foreground" aria-hidden />
                     </button>
                     <p className="mt-2 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
@@ -41,7 +41,7 @@ export const DogeIdCard = () => {
                 <div className="mt-5 text-sm text-muted-foreground">Could not read the registry. <button className="text-primary underline" onClick={() => refetch()}>Retry</button></div>
             ) : (
                 <>
-                    <p className="mt-5 font-display text-3xl text-muted-foreground/70">@yourname.doge</p>
+                    <p className="dogepay-readable-muted mt-5 font-display text-3xl">@yourname.doge</p>
                     <p className="mt-2 text-sm text-muted-foreground">Claim a name so friends can pay you without copying an address.</p>
                     <Button onClick={() => setOpen(true)} disabled={!registryLive} className="mt-4 rounded-full">Claim your Doge ID</Button>
                 </>

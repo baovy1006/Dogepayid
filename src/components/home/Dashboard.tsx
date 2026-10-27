@@ -13,7 +13,7 @@ export const Dashboard = () => {
     <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-4 md:grid-cols-5 md:gap-5">
         <motion.div variants={fadeUp} className="md:col-span-5">
             <p className="eyebrow">Social payments on DogeOS</p>
-            <h1 className="mt-2 font-display text-2xl tracking-tight sm:text-3xl">Send DOGE to <em className="text-primary">people</em>, not just addresses.</h1>
+            <h1 className="dogepay-readable mt-2 font-display text-2xl tracking-tight sm:text-3xl">Send DOGE to <em className="text-primary">people</em>, not just addresses.</h1>
         </motion.div>
         <motion.div variants={fadeUp} className="md:col-span-3">
             <BalanceCard />

@@ -162,3 +162,26 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* DogePay UI contrast guard (scoped outside SDK modal). The DogeOS SDK
+   stylesheet defines global tokens and can otherwise darken app text. */
+.app-bg {
+  --background: 217 20% 8%;
+  --foreground: 60 20% 95%;
+  --card-foreground: 60 20% 95%;
+  --popover-foreground: 60 20% 95%;
+  --secondary-foreground: 60 20% 95%;
+  --accent-foreground: 60 20% 95%;
+  --muted-foreground: 201 9% 65%;
+  --primary: 41 60% 58%;
+  --primary-foreground: 217 20% 8%;
+  color: hsl(60 20% 95%);
+}
+.app-bg :is(h1, h2, h3, h4, h5, h6) { color: hsl(60 20% 95%); }
+.app-bg h1 em.text-primary,
+.app-bg h2 em.text-primary { color: hsl(41 60% 58%); }
+.app-bg .dogepay-readable { color: #f5f5f0 !important; }
+.app-bg .dogepay-readable-muted { color: #a2afb7 !important; }
+.app-bg .dogepay-action-secondary { color: #f5f5f0 !important; }
+.app-bg .dogepay-action-secondary svg { color: #f5f5f0 !important; }

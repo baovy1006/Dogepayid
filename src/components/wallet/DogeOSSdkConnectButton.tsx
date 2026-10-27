@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAccount as useDogeAccount, useWalletConnect } from '@dogeos/dogeos-sdk';
 import { useAccount as useWagmiAccount, useDisconnect, useSignMessage } from 'wagmi';
 import { isAddress, verifyMessage, type Address } from 'viem';
-import { Check, Copy, ExternalLink, Loader2, LogOut, ShieldAlert, ShieldCheck, Wallet } from 'lucide-react';
+import { Check, Copy, ExternalLink, Loader2, ShieldAlert, ShieldCheck, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -100,20 +100,16 @@ export const DogeOSSdkConnectButton = () => {
     setBusy(false);
   };
 
+  if (!isConnected && wagmi.isConnected) return null;
+
   return <div className="flex items-center gap-1.5">
-    <Button type="button" size="sm" className="h-10 gap-2 rounded-full px-3"
+    <Button type="button" size="sm" className="h-10 gap-2 rounded-full px-3 font-semibold text-primary-foreground"
       onClick={isConnected ? () => setDetailsOpen(true) : open} disabled={busy || isConnecting}>
       <Wallet className="h-4 w-4" />
       <span className="hidden sm:inline">{isConnecting ? 'Connecting...' : isConnected
         ? sdk.address ? shortenAddress(sdk.address) : 'My Wallet' : 'Connect X'}</span>
-      <span className="sm:hidden">X</span>
+      <span className="sm:hidden">{isConnected ? 'Account' : 'X'}</span>
     </Button>
-    {isConnected && <Button type="button" variant="outline" size="sm" disabled={busy}
-      className="h-9 gap-1 rounded-full border-destructive/40 px-2 text-destructive sm:px-3"
-      onClick={() => void logout()} aria-label="Disconnect DogePay account">
-      {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <LogOut className="h-3.5 w-3.5"/>}
-      <span className="hidden sm:inline">Disconnect</span>
-    </Button>}
     <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
       <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded-2xl border-border bg-popover">
         <DialogHeader>

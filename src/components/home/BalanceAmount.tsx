@@ -23,7 +23,7 @@ export const BalanceAmount = () => {
 
     return (
         <div className="relative mt-1 flex items-end gap-3">
-            <p className="tabular font-display text-5xl leading-none tracking-tight sm:text-6xl" aria-live="polite">
+            <p className="dogepay-readable tabular font-display text-5xl leading-none tracking-tight sm:text-6xl" aria-live="polite">
                 {formatDoge(value)}
                 <span className="ml-2 font-sans text-lg font-medium text-muted-foreground">DOGE</span>
             </p>

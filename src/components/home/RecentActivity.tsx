@@ -17,7 +17,7 @@ export const RecentActivity = ({ limit }: { limit?: number }) => {
     return (
         <section className="glass-card p-6" aria-labelledby="activity-title">
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 id="activity-title" className="text-sm font-medium">Recent activity</h2>
+                <h2 id="activity-title" className="dogepay-readable text-sm font-medium">Recent activity</h2>
                 <div className="flex items-center gap-4 text-xs">
                     {limit && records.length > limit && <Link to="/activity" className="text-primary hover:underline">See all</Link>}
                     {address && (
@@ -30,6 +30,7 @@ export const RecentActivity = ({ limit }: { limit?: number }) => {
             {chain.isError&&<p className="mt-2 text-xs text-warning">Explorer unavailable, showing local receipts. <button onClick={()=>chain.refetch()} className="underline">Retry</button></p>}
             {shown.length === 0 ? (
                 <EmptyState
+                    compact
                     icon={Receipt}
                     title="No DogePay transactions yet"
                     description="Incoming and outgoing DOGE transfers appear after indexing."

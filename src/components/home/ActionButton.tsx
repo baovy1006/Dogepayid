@@ -22,7 +22,7 @@ export const ActionButton = ({ icon: Icon, label, onClick, primary, soonReason }
             'disabled:cursor-not-allowed disabled:opacity-55',
             primary
                 ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/90 enabled:gold-glow'
-                : 'border-border bg-secondary/50 hover:border-primary/40 hover:bg-secondary',
+                : 'dogepay-action-secondary border-border bg-secondary/70 hover:border-primary/40 hover:bg-secondary',
         )}
     >
         <Icon className="h-5 w-5" aria-hidden />
