@@ -8,6 +8,7 @@ import { WagmiProvider, useAccount } from 'wagmi';
 import { toast } from '@/hooks/use-toast';
 import { BRAND_COLORS, TARGET_CHAIN } from '@/lib/config';
 import { ensureTargetChain, isUserRejection, wagmiConfig } from '@/lib/wagmi';
+import { SdkSignerObserver } from '@/components/wallet/SdkSignerObserver';
 
 const queryClient = new QueryClient();
 const sdkClientId = import.meta.env.VITE_DOGEOS_CLIENT_ID?.trim();
@@ -84,7 +85,7 @@ export const Web3Provider = ({children}: {children: ReactNode}) => (
     <QueryClientProvider client={queryClient}>
       <RainbowKitProvider initialChain={TARGET_CHAIN} modalSize="compact" theme={walletTheme}>
         {dogeOSConfig ? <WalletConnectProvider config={dogeOSConfig}>
-          <ChainGuard />{children}
+          <SdkSignerObserver /><ChainGuard />{children}
         </WalletConnectProvider> : <><ChainGuard />{children}</>}
       </RainbowKitProvider>
     </QueryClientProvider>

@@ -2,6 +2,7 @@ import type { Address, Hash } from 'viem';
 import { getAccount, getPublicClient, sendTransaction } from 'wagmi/actions';
 import { TARGET_CHAIN } from './config';
 import { wagmiConfig } from './wagmi';
+import { sdkSignerFor, sendThroughSdkProvider } from './sdkSignerBridge';
 
 function client() {
     const c = getPublicClient(wagmiConfig, { chainId: TARGET_CHAIN.id });
@@ -33,6 +34,19 @@ export async function sendDoge(to: Address, value: bigint): Promise<Hash> {
     if (connected.chainId !== TARGET_CHAIN.id) throw new Error('Switch your wallet to DogeOS Chikyū Testnet before sending.');
     const from = connected.address;
     const c = client();
+    // SDK Social Wallet: use its EIP-1193 provider directly, not the Wagmi adapter.
+    // MetaMask and other external wallets continue through the already-proven Wagmi path.
+    if (sdkSignerFor(from)) {
+        const [estimatedGas, gasPrice, balance] = await Promise.all([
+            c.estimateGas({ account: from, to, value }),
+            c.getGasPrice(),
+            c.getBalance({ address: from }),
+        ]);
+        const gas = (estimatedGas * 120n + 99n) / 100n;
+        if (gasPrice <= 0n || value + gas * gasPrice > balance)
+            throw new Error('Not enough Testnet DOGE or no network gas price. No transaction submitted.');
+        return sendThroughSdkProvider({ from, to, value, gas, gasPrice });
+    }
     const [estimatedGas, fees, balance] = await Promise.all([
         c.estimateGas({ account: from, to, value }),
         c.estimateFeesPerGas({ type: 'eip1559' }),

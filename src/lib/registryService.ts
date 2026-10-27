@@ -1,9 +1,10 @@
-import { zeroAddress, type Address, type Hash } from 'viem';
+import { encodeFunctionData, zeroAddress, type Address, type Hash } from 'viem';
 import { getAccount, getPublicClient, readContract, writeContract } from 'wagmi/actions';
 import { CONTRACTS, TARGET_CHAIN } from './config';
 import { identityRegistryAbi } from './contracts';
 import { isValidName } from './dogeId';
 import { wagmiConfig } from './wagmi';
+import { sdkSignerFor, sendThroughSdkProvider } from './sdkSignerBridge';
 
 /** IdentityRegistry reads/writes. Names passed here must already be normalized. */
 function registry(): Address {
@@ -56,6 +57,22 @@ export async function registerName(name: string): Promise<Hash> {
         throw new Error(`This wallet has already registered @${existingName}.doge.`);
     if (available !== true) throw new Error(`@${name}.doge is no longer available. Choose another name.`);
 
+    // SDK Social Wallet uses the EIP-1193 provider directly with legacy gasPrice.
+    // Keep the existing Wagmi/EIP-1559 contract path intact for MetaMask.
+    if (sdkSignerFor(owner)) {
+        const [estimate, gasPrice, balance] = await Promise.all([
+            c.estimateContractGas({address, abi: identityRegistryAbi, functionName: 'register', args: [name], account: owner}),
+            c.getGasPrice(),
+            c.getBalance({address: owner}),
+        ]);
+        const gas = (estimate * 120n + 99n) / 100n;
+        if (gasPrice <= 0n || gas * gasPrice > balance)
+            throw new Error('Not enough Testnet DOGE or no network gas price. Registration not submitted.');
+        return sendThroughSdkProvider({
+            from: owner, to: address, value: 0n, gas, gasPrice,
+            data: encodeFunctionData({abi: identityRegistryAbi, functionName: 'register', args: [name]}),
+        });
+    }
     // Estimate this exact contract invocation (not a 21,000-gas DOGE transfer).
     const [estimate, fees, balance] = await Promise.all([
         c.estimateContractGas({address, abi: identityRegistryAbi, functionName: 'register', args: [name], account: owner}),
